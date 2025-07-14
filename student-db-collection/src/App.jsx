@@ -7,10 +7,7 @@ function App() {
     phone: '',
     course: ''
   });
-
-  const [studentData, setStudentData] = useState(null);
-  const [emailToCheck, setEmailToCheck] = useState('');
-
+  // https://v1.nocodeapi.com/real234/google_sheets/nJrgkqGDFEmXWByc
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -18,7 +15,6 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{10}$/;
 
@@ -32,28 +28,27 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/register', {
+      const response = await fetch('https://v1.nocodeapi.com/real234/google_sheets/nJrgkqGDFEmXWByc?tabId=Sheet1', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([
+          [formData.name, formData.email, formData.phone, formData.course]
+        ])
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail);
-      alert('Registered successfully');
-      setFormData({ name: '', email: '', phone: '', course: '' }); // Clear form
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    }
-  };
 
-  const handleView = async () => {
-    const response = await fetch(`http://127.0.0.1:8000/student?email=${emailToCheck}`);
-    if (response.ok) {
-      const data = await response.json();
-      setStudentData(data);
-    } else {
-      alert('Student not found');
-      setStudentData(null);
+
+      if (response.ok) {
+        alert('✅ Registered successfully!');
+        setFormData({ name: '', email: '', phone: '', course: '' });
+      } else {
+        const errText = await response.text();
+        console.error('Error response:', errText);
+        alert('❌ Submission failed. Make sure your sheet has proper headers.');
+      }
+    } catch (error) {
+      alert(`❌ Network error: ${error.message}`);
     }
   };
 
@@ -65,8 +60,7 @@ function App() {
       margin: 'auto',
       background: 'linear-gradient(to bottom, #f5f7fa, #c3cfe2)',
       borderRadius: '10px',
-      boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-      animation: 'fadeIn 1s ease-in-out'
+      boxShadow: '0 0 20px rgba(0,0,0,0.1)'
     },
     input: {
       width: '100%',
@@ -85,23 +79,13 @@ function App() {
       fontSize: '16px',
       border: 'none',
       borderRadius: '6px',
-      cursor: 'pointer',
-      transition: '0.3s ease'
-    },
-    result: {
-      marginTop: '1rem',
-      backgroundColor: '#e9ffe9',
-      padding: '1rem',
-      borderRadius: '8px',
-      border: '1px solid #b6ffb6'
+      cursor: 'pointer'
     }
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={{ textAlign: 'center', color: '#333' }}>🎓 Student Data Collection</h1>
-
-      <h2>📝 Register</h2>
+      <h1 style={{ textAlign: 'center', color: '#333' }}>🎓 Student Registration Form</h1>
       <form onSubmit={handleSubmit}>
         <input
           name="name"
@@ -121,7 +105,7 @@ function App() {
         />
         <input
           name="phone"
-          placeholder="Phone"
+          placeholder="Phone (10 digits)"
           value={formData.phone}
           onChange={handleChange}
           required
@@ -137,27 +121,6 @@ function App() {
         />
         <button type="submit" style={styles.button}>Submit</button>
       </form>
-
-      <hr />
-
-      <h2>🔍 View My Data</h2>
-      <input
-        placeholder="Enter your email"
-        value={emailToCheck}
-        onChange={(e) => setEmailToCheck(e.target.value)}
-        style={styles.input}
-      />
-      <button onClick={handleView} style={styles.button}>See Your Data</button>
-
-      {studentData && (
-        <div style={styles.result}>
-          <h3>Your Details:</h3>
-          <p><b>Name:</b> {studentData.name}</p>
-          <p><b>Email:</b> {studentData.email}</p>
-          <p><b>Phone:</b> {studentData.phone}</p>
-          <p><b>Course:</b> {studentData.course}</p>
-        </div>
-      )}
     </div>
   );
 }
